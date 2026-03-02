@@ -14,11 +14,11 @@ Wraps any MCP server that speaks JSON-RPC over **stdio** and exposes it as a **S
 ## Usage
 
 ```bash
-# Stateless (default)
-bun run src/index.ts --stdio "npx -y @modelcontextprotocol/server-everything" --port 8000 --cors '*' --healthEndpoint /healthz
+# Using bunx (Stateless default)
+bunx @platf/bridge --stdio "npx -y @modelcontextprotocol/server-everything" --port 8000 --cors '*' --healthEndpoint /healthz
 
-# Stateful with 10 min session timeout
-bun run src/index.ts --stdio "npx -y @modelcontextprotocol/server-everything" --stateful --sessionTimeout 600000 --cors '*'
+# Using npx (Stateful with 10 min session timeout)
+npx @platf/bridge --stdio "npx -y @modelcontextprotocol/server-everything" --stateful --sessionTimeout 600000 --cors '*'
 ```
 
 ## Docker
@@ -55,9 +55,5 @@ docker run -p 8000:8000 platf-mcp-bridge \
 | `--cors` | — | CORS origins (omit=disabled, `*`=all) |
 | `--healthEndpoint` | — | Health-check path(s) returning 200 |
 | `--header` | — | Extra response headers (`Key: Value`) |
-
-```bash
-bun run index.ts
-```
 
 This project was created using `bun init` in bun v1.3.7. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
