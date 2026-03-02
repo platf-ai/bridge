@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      !startsWith(github.event.head_commit.message, 'chore: release')
+      (!startsWith(github.event.head_commit.message, 'chore: release') && !contains(github.event.head_commit.message, '[skip ci]'))
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:

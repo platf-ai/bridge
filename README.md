@@ -23,6 +23,16 @@ bun run src/index.ts --stdio "npx -y @modelcontextprotocol/server-everything" --
 
 ## Docker
 
+You can use the pre-built image from GitHub Container Registry:
+
+```bash
+docker run -p 8000:8000 ghcr.io/platf-ai/bridge:latest \
+  --stdio "npx -y @modelcontextprotocol/server-everything" \
+  --cors '*' --healthEndpoint /healthz
+```
+
+Or build locally:
+
 ```bash
 docker build -t platf-mcp-bridge .
 
