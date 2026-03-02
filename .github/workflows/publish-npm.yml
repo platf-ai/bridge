@@ -18,14 +18,10 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      !startsWith(github.event.head_commit.message, 'chore: release')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,12 +45,6 @@ jobs:
             fi
           fi
           echo "Bump type: $(cat "$GITHUB_OUTPUT" | grep type | cut -d= -f2)"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -95,4 +85,6 @@ jobs:
         run: bun run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: bun publish --access public
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
