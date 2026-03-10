@@ -43,19 +43,25 @@ export function createOAuthProxyRouter(auth: AuthConfig, logger: Logger): Router
   router.post('/token', async (req: Request, res: Response) => {
     try {
       const upstreamUrl = `${auth.issuer}/token`
-      logger.info('[oauth-proxy] Proxying /token to upstream')
+      logger.info(`[oauth-proxy] Proxying /token to ${upstreamUrl}`)
+
+      const requestBody = req.get('Content-Type')?.includes('application/json')
+        ? JSON.stringify(req.body)
+        : new URLSearchParams(req.body as Record<string, string>).toString()
+      
+      logger.info(`[oauth-proxy] Request body: ${requestBody}`)
 
       const upstreamRes = await fetch(upstreamUrl, {
         method: 'POST',
         headers: {
           'Content-Type': req.get('Content-Type') || 'application/x-www-form-urlencoded',
         },
-        body: req.get('Content-Type')?.includes('application/json')
-          ? JSON.stringify(req.body)
-          : new URLSearchParams(req.body as Record<string, string>).toString(),
+        body: requestBody,
       })
 
       const data = await upstreamRes.text()
+      logger.info(`[oauth-proxy] Upstream response: ${upstreamRes.status} ${data.substring(0, 200)}`)
+      
       res.status(upstreamRes.status)
       res.set('Content-Type', upstreamRes.headers.get('Content-Type') || 'application/json')
       res.send(data)

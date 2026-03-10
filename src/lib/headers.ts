@@ -1,4 +1,4 @@
-import type { Logger } from '../types.js'
+import type { Logger } from '@/types.js'
 
 export function parseHeaders(
   rawHeaders: (string | number)[],

@@ -1,4 +1,4 @@
-import type { Logger } from '../types.js'
+import type { Logger } from '@/types.js'
 
 export interface OnSignalsOptions {
   logger: Logger
