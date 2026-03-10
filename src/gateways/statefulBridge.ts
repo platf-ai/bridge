@@ -66,6 +66,7 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
   onSignals({ logger })
 
   const app = express()
+  app.set('trust proxy', true)
   app.use(express.json())
 
   if (corsOrigin) {

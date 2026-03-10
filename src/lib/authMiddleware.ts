@@ -13,7 +13,7 @@ import type { AuthConfig, Logger } from '../types.js'
 
 /** Build a reusable auth middleware for the given auth config */
 export function createAuthMiddleware(auth: AuthConfig, logger: Logger): RequestHandler {
-  const jwksUri = new URL('/jwks', auth.issuer)
+  const jwksUri = new URL(`${auth.issuer}/jwks`)
   const JWKS = createRemoteJWKSet(jwksUri)
 
   return async (req, res, next) => {

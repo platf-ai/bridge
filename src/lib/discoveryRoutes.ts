@@ -79,7 +79,8 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
    * (e.g., VS Code Copilot) discover the correct client_id through
    * the normal DCR flow without requiring out-of-band configuration.
    */
-  router.post('/oauth/register', (_req: Request, res: Response) => {
+  router.post('/oauth/register', (req: Request, res: Response) => {
+    const body = req.body ?? {}
     res.status(201).json({
       client_id: auth.clientId,
       client_name: 'platf-bridge',
@@ -87,7 +88,7 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
       token_endpoint_auth_method: 'none',
       grant_types: ['authorization_code'],
       response_types: ['code'],
-      redirect_uris: [], // Client provides its own redirect_uri
+      redirect_uris: Array.isArray(body.redirect_uris) ? body.redirect_uris : [],
     })
   })
 
