@@ -1,5 +1,5 @@
 import util from 'node:util'
-import type { Logger } from '../types.js'
+import type { Logger, LogLevel } from '../types.js'
 
 const defaultFormatArgs = (args: unknown[]) => args
 
@@ -40,10 +40,11 @@ const debugLogger: Logger = {
   error: logStderr({ formatArgs: debugFormatArgs }),
 }
 
-export type LogLevel = 'none' | 'info' | 'debug'
-
 export function getLogger(logLevel: LogLevel): Logger {
   if (logLevel === 'none') return noneLogger
   if (logLevel === 'debug') return debugLogger
   return infoLogger
 }
+
+// Re-export LogLevel for backward compatibility
+export type { LogLevel }

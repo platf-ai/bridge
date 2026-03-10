@@ -6,6 +6,8 @@
  *  - GET  /.well-known/oauth-authorization-server[/*] (RFC 8414 — proxied from issuer)
  *  - POST /oauth/register                             (Pseudo-DCR — RFC 7591)
  *
+ * OAuth proxy routes (/oauth/authorize, /oauth/token, /jwks) are in oauthProxy.ts.
+ *
  * These endpoints are unauthenticated — they must be accessible to
  * any client performing OAuth discovery before obtaining a token.
  */
@@ -123,72 +125,6 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
       response_types: ['code'],
       redirect_uris: Array.isArray(body.redirect_uris) ? body.redirect_uris : [],
     })
-  })
-
-  /**
-   * OAuth Authorization Endpoint — Redirect to upstream
-   *
-   * Since the bridge advertises itself as the authorization_server,
-   * clients will attempt to call /oauth/authorize here. We redirect
-   * to the upstream auth server, preserving all query parameters.
-   */
-  router.get('/oauth/authorize', (req: Request, res: Response) => {
-    const upstreamUrl = new URL(`${auth.issuer}/oauth/authorize`)
-    // Copy all query params to upstream
-    for (const [key, value] of Object.entries(req.query)) {
-      if (typeof value === 'string') {
-        upstreamUrl.searchParams.set(key, value)
-      }
-    }
-    logger.info(`[discovery] Redirecting /oauth/authorize to ${upstreamUrl.toString().slice(0, 100)}...`)
-    res.redirect(upstreamUrl.toString())
-  })
-
-  /**
-   * OAuth Token Endpoint — Proxy to upstream
-   *
-   * Proxies token exchange requests to the upstream auth server.
-   */
-  router.post('/oauth/token', async (req: Request, res: Response) => {
-    try {
-      const upstreamUrl = `${auth.issuer}/oauth/token`
-      logger.info('[discovery] Proxying /oauth/token to upstream')
-
-      const upstreamRes = await fetch(upstreamUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': req.get('Content-Type') || 'application/x-www-form-urlencoded',
-        },
-        body: req.get('Content-Type')?.includes('application/json')
-          ? JSON.stringify(req.body)
-          : new URLSearchParams(req.body as Record<string, string>).toString(),
-      })
-
-      const data = await upstreamRes.text()
-      res.status(upstreamRes.status)
-      res.set('Content-Type', upstreamRes.headers.get('Content-Type') || 'application/json')
-      res.send(data)
-    } catch (err: any) {
-      logger.error('[discovery] Error proxying /oauth/token:', err.message ?? err)
-      res.status(502).json({ error: 'upstream_error' })
-    }
-  })
-
-  /**
-   * JWKS Endpoint — Proxy to upstream
-   *
-   * Proxies JSON Web Key Set requests for token verification.
-   */
-  router.get('/jwks', async (req: Request, res: Response) => {
-    try {
-      const upstreamUrl = `${auth.issuer}/jwks`
-      const upstreamRes = await fetch(upstreamUrl)
-      const data = await upstreamRes.json()
-      res.json(data)
-    } catch (err: any) {
-      logger.error('[discovery] Error proxying /jwks:', err.message ?? err)
-      res.status(502).json({ error: 'upstream_error' })
-    }
   })
 
   return router

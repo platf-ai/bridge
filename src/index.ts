@@ -2,12 +2,12 @@
 
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { getLogger, type LogLevel } from './lib/getLogger.js'
+import { getLogger } from './lib/getLogger.js'
 import { parseCorsOrigin } from './lib/cors.js'
 import { parseHeaders } from './lib/headers.js'
 import { startStatelessBridge } from './gateways/statelessBridge.js'
 import { startStatefulBridge } from './gateways/statefulBridge.js'
-import type { AuthConfig } from './types.js'
+import type { AuthConfig, LogLevel } from './types.js'
 
 const argv = await yargs(hideBin(process.argv))
   .scriptName('platf-bridge')

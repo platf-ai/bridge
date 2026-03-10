@@ -4,9 +4,13 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleDetection": "force",
-    "allowJs": true,
+    "allowJs": false,
 
     "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
