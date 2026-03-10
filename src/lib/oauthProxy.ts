@@ -24,7 +24,7 @@ export function createOAuthProxyRouter(auth: AuthConfig, logger: Logger): Router
    * to the upstream auth server, preserving all query parameters.
    */
   router.get('/authorize', (req: Request, res: Response) => {
-    const upstreamUrl = new URL(`${auth.issuer}/oauth/authorize`)
+    const upstreamUrl = new URL(`${auth.issuer}/authorize`)
     // Copy all query params to upstream
     for (const [key, value] of Object.entries(req.query)) {
       if (typeof value === 'string') {
@@ -42,7 +42,7 @@ export function createOAuthProxyRouter(auth: AuthConfig, logger: Logger): Router
    */
   router.post('/token', async (req: Request, res: Response) => {
     try {
-      const upstreamUrl = `${auth.issuer}/oauth/token`
+      const upstreamUrl = `${auth.issuer}/token`
       logger.info('[oauth-proxy] Proxying /token to upstream')
 
       const upstreamRes = await fetch(upstreamUrl, {
