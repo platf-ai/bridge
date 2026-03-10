@@ -32,8 +32,9 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
    * the resource is the path after the well-known prefix.
    *
    * IMPORTANT: We advertise the BRIDGE as the authorization_server (not the upstream issuer).
-   * This ensures clients use our proxied AS metadata (which patches registration_endpoint),
-   * rather than going directly to the upstream auth server's DCR endpoint.
+   * Per RFC 8414 Section 3.3, the issuer in AS metadata MUST match the URL
+   * it was fetched from. So we point to the REAL issuer (auth.issuer).
+   * Clients will fetch AS metadata directly from the real auth server.
    */
   router.get('/.well-known/oauth-protected-resource', (req: Request, res: Response) => {
     // Exact match — client is looking for the root resource
@@ -43,8 +44,8 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
     const bridgeOrigin = `${scheme}://${host}`
     const resourceMetadata = {
       resource: `${bridgeOrigin}/mcp`,
-      // Point to OURSELVES so clients use our proxied AS metadata
-      authorization_servers: [bridgeOrigin],
+      // Point to REAL issuer so AS metadata validation passes (RFC 8414 §3.3)
+      authorization_servers: [auth.issuer],
       scopes_supported: ['openid', 'profile', 'email'],
       bearer_methods_supported: ['header'],
     }
@@ -59,8 +60,8 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
     const resourcePath = '/' + req.params[0]
     const resourceMetadata = {
       resource: `${bridgeOrigin}${resourcePath}`,
-      // Point to OURSELVES so clients use our proxied AS metadata
-      authorization_servers: [bridgeOrigin],
+      // Point to REAL issuer so AS metadata validation passes (RFC 8414 §3.3)
+      authorization_servers: [auth.issuer],
       scopes_supported: ['openid', 'profile', 'email'],
       bearer_methods_supported: ['header'],
     }
