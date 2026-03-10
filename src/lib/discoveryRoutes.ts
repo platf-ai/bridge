@@ -26,12 +26,32 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
    *
    * Handles both root and path-suffixed variants (e.g. /.well-known/oauth-protected-resource/mcp)
    * as required by the MCP SDK for path-based resource discovery.
+   *
+   * The `resource` field MUST match the URL the client is accessing (RFC 9728 §2).
+   * For path-suffixed requests like /.well-known/oauth-protected-resource/mcp,
+   * the resource is the path after the well-known prefix.
    */
-  router.get('/.well-known/oauth-protected-resource*', (req: Request, res: Response) => {
+  router.get('/.well-known/oauth-protected-resource', (req: Request, res: Response) => {
+    // Exact match — client is looking for the root resource
+    // Return /mcp as that's our protected endpoint
     const scheme = req.protocol
     const host = req.get('host')
     const resourceMetadata = {
-      resource: `${scheme}://${host}/`,
+      resource: `${scheme}://${host}/mcp`,
+      authorization_servers: [auth.issuer],
+      scopes_supported: ['openid', 'profile', 'email'],
+      bearer_methods_supported: ['header'],
+    }
+    res.json(resourceMetadata)
+  })
+
+  router.get('/.well-known/oauth-protected-resource/*', (req: Request, res: Response) => {
+    // Path-suffixed request — the suffix IS the protected resource path
+    const scheme = req.protocol
+    const host = req.get('host')
+    const resourcePath = '/' + req.params[0]
+    const resourceMetadata = {
+      resource: `${scheme}://${host}${resourcePath}`,
       authorization_servers: [auth.issuer],
       scopes_supported: ['openid', 'profile', 'email'],
       bearer_methods_supported: ['header'],
