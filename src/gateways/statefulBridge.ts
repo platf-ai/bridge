@@ -153,15 +153,13 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
           const message = detail
             ? `Child process exited (code=${code}): ${detail}`
             : `Child process exited unexpectedly (code=${code}, signal=${signal})`
-          try {
-            transport.send({
-              jsonrpc: '2.0',
-              error: { code: -32603, message },
-              id,
-            } as JSONRPCMessage)
-          } catch (e) {
+          transport.send({
+            jsonrpc: '2.0',
+            error: { code: -32603, message },
+            id,
+          } as JSONRPCMessage).catch(e => {
             logger.error(`Failed to send error response for request ${id}`, e)
-          }
+          })
         }
         pendingRequestIds.clear()
 
@@ -185,12 +183,11 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
               pendingRequestIds.delete(jsonMsg.id)
             }
             logger.info('Child → HTTP:', line.slice(0, 500))
-            try {
-              transport.send(jsonMsg)
+            transport.send(jsonMsg).then(() => {
               logger.info('[debug] transport.send() succeeded')
-            } catch (e) {
+            }).catch(e => {
               logger.error('Failed to send to HTTP transport', e)
-            }
+            })
           } catch {
             logger.error(`Child non-JSON: ${line}`)
           }
