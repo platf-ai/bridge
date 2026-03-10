@@ -30,15 +30,21 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
    * The `resource` field MUST match the URL the client is accessing (RFC 9728 §2).
    * For path-suffixed requests like /.well-known/oauth-protected-resource/mcp,
    * the resource is the path after the well-known prefix.
+   *
+   * IMPORTANT: We advertise the BRIDGE as the authorization_server (not the upstream issuer).
+   * This ensures clients use our proxied AS metadata (which patches registration_endpoint),
+   * rather than going directly to the upstream auth server's DCR endpoint.
    */
   router.get('/.well-known/oauth-protected-resource', (req: Request, res: Response) => {
     // Exact match — client is looking for the root resource
     // Return /mcp as that's our protected endpoint
     const scheme = req.protocol
     const host = req.get('host')
+    const bridgeOrigin = `${scheme}://${host}`
     const resourceMetadata = {
-      resource: `${scheme}://${host}/mcp`,
-      authorization_servers: [auth.issuer],
+      resource: `${bridgeOrigin}/mcp`,
+      // Point to OURSELVES so clients use our proxied AS metadata
+      authorization_servers: [bridgeOrigin],
       scopes_supported: ['openid', 'profile', 'email'],
       bearer_methods_supported: ['header'],
     }
@@ -49,10 +55,12 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
     // Path-suffixed request — the suffix IS the protected resource path
     const scheme = req.protocol
     const host = req.get('host')
+    const bridgeOrigin = `${scheme}://${host}`
     const resourcePath = '/' + req.params[0]
     const resourceMetadata = {
-      resource: `${scheme}://${host}${resourcePath}`,
-      authorization_servers: [auth.issuer],
+      resource: `${bridgeOrigin}${resourcePath}`,
+      // Point to OURSELVES so clients use our proxied AS metadata
+      authorization_servers: [bridgeOrigin],
       scopes_supported: ['openid', 'profile', 'email'],
       bearer_methods_supported: ['header'],
     }
