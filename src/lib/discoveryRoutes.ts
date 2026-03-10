@@ -4,9 +4,9 @@
  * When auth is enabled these routes expose:
  *  - GET  /.well-known/oauth-protected-resource[/*]  (RFC 9728)
  *  - GET  /.well-known/oauth-authorization-server[/*] (RFC 8414 — proxied from issuer)
- *  - POST /oauth/register                             (Pseudo-DCR — RFC 7591)
+ *  - POST /register                                   (Pseudo-DCR — RFC 7591)
  *
- * OAuth proxy routes (/oauth/authorize, /oauth/token, /jwks) are in oauthProxy.ts.
+ * OAuth proxy routes (/authorize, /token, /jwks) are in oauthProxy.ts.
  *
  * These endpoints are unauthenticated — they must be accessible to
  * any client performing OAuth discovery before obtaining a token.
@@ -94,9 +94,9 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
       const host = req.get('host')
       const bridgeOrigin = `${scheme}://${host}`
       metadata.issuer = bridgeOrigin
-      metadata.authorization_endpoint = `${bridgeOrigin}/oauth/authorize`
-      metadata.token_endpoint = `${bridgeOrigin}/oauth/token`
-      metadata.registration_endpoint = `${bridgeOrigin}/oauth/register`
+      metadata.authorization_endpoint = `${bridgeOrigin}/authorize`
+      metadata.token_endpoint = `${bridgeOrigin}/token`
+      metadata.registration_endpoint = `${bridgeOrigin}/register`
       metadata.jwks_uri = `${bridgeOrigin}/jwks`
 
       res.json(metadata)
@@ -114,7 +114,7 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
    * (e.g., VS Code Copilot) discover the correct client_id through
    * the normal DCR flow without requiring out-of-band configuration.
    */
-  router.post('/oauth/register', (req: Request, res: Response) => {
+  router.post('/register', (req: Request, res: Response) => {
     const body = req.body ?? {}
     res.status(201).json({
       client_id: auth.clientId,
