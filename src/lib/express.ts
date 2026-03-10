@@ -10,7 +10,6 @@ import cors, { type CorsOptions } from 'cors'
 import type { AuthConfig, Logger } from '../types.js'
 import { serializeCorsOrigin } from './cors.js'
 import { createDiscoveryRouter } from './discoveryRoutes.js'
-import { createOAuthProxyRouter } from './oauthProxy.js'
 import { createAuthMiddleware } from './authMiddleware.js'
 
 export interface CreateAppOptions {
@@ -70,8 +69,6 @@ export function createApp(options: CreateAppOptions): Express {
   if (auth) {
     // Discovery routes (PRM, AS metadata, pseudo-DCR)
     app.use(createDiscoveryRouter(auth, logger))
-    // OAuth proxy routes (authorize redirect, token proxy, JWKS proxy)
-    app.use(createOAuthProxyRouter(auth, logger))
     // Auth middleware on MCP path
     app.use(mcpPath, createAuthMiddleware(auth, logger))
     logger.info(`  - Auth: enabled (issuer=${auth.issuer})`)
