@@ -87,10 +87,15 @@ export function createDiscoveryRouter(auth: AuthConfig, logger: Logger): Router 
 
       const metadata = (await upstream.json()) as Record<string, unknown>
 
-      // Patch registration_endpoint to point to our pseudo-DCR
+      // Patch all OAuth endpoints to point to our proxy
       const scheme = req.protocol
       const host = req.get('host')
-      metadata.registration_endpoint = `${scheme}://${host}/oauth/register`
+      const bridgeOrigin = `${scheme}://${host}`
+      metadata.issuer = bridgeOrigin
+      metadata.authorization_endpoint = `${bridgeOrigin}/oauth/authorize`
+      metadata.token_endpoint = `${bridgeOrigin}/oauth/token`
+      metadata.registration_endpoint = `${bridgeOrigin}/oauth/register`
+      metadata.jwks_uri = `${bridgeOrigin}/jwks`
 
       res.json(metadata)
     } catch (err: any) {
