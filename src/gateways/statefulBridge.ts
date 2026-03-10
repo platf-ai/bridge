@@ -128,10 +128,21 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
       })
 
       await server.connect(transport)
-      const child = spawn(stdioCmd, { shell: true })
+      logger.info('[debug] Server connected to transport')
+
+      const child = spawn(stdioCmd, { shell: true, stdio: ['pipe', 'pipe', 'pipe'] })
+      logger.info(`[debug] Child spawned, pid=${child.pid}`)
 
       const pendingRequestIds = new Set<string | number>()
       let stderrOutput = ''
+
+      child.on('spawn', () => {
+        logger.info(`[debug] Child spawn event fired, pid=${child.pid}`)
+      })
+
+      child.on('error', (err) => {
+        logger.error(`[debug] Child error event: ${err.message}`)
+      })
 
       child.on('exit', (code, signal) => {
         logger.error(`Child exited: code=${code}, signal=${signal}`)
@@ -159,9 +170,12 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
 
       let buffer = ''
       child.stdout.on('data', (chunk: Buffer) => {
-        buffer += chunk.toString('utf8')
+        const chunkStr = chunk.toString('utf8')
+        logger.info(`[debug] stdout.on('data') received ${chunk.length} bytes: ${chunkStr.slice(0, 200)}...`)
+        buffer += chunkStr
         const lines = buffer.split(/\r?\n/)
         buffer = lines.pop() ?? ''
+        logger.info(`[debug] Split into ${lines.length} lines, remaining buffer: ${buffer.length} chars`)
 
         for (const line of lines) {
           if (!line.trim()) continue
@@ -170,9 +184,10 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
             if ('id' in jsonMsg && jsonMsg.id !== undefined) {
               pendingRequestIds.delete(jsonMsg.id)
             }
-            logger.info('Child → HTTP:', line)
+            logger.info('Child → HTTP:', line.slice(0, 500))
             try {
               transport.send(jsonMsg)
+              logger.info('[debug] transport.send() succeeded')
             } catch (e) {
               logger.error('Failed to send to HTTP transport', e)
             }
@@ -188,12 +203,26 @@ export async function startStatefulBridge(args: StatefulBridgeArgs) {
         logger.error(`Child stderr: ${text}`)
       })
 
+      child.stdout.on('close', () => {
+        logger.info('[debug] child.stdout closed')
+      })
+
+      child.stdout.on('end', () => {
+        logger.info('[debug] child.stdout ended')
+      })
+
+      child.stdin.on('error', (err) => {
+        logger.error(`[debug] child.stdin error: ${err.message}`)
+      })
+
       transport.onmessage = (msg: JSONRPCMessage) => {
         logger.info(`HTTP → Child: ${JSON.stringify(msg)}`)
         if ('id' in msg && msg.id !== undefined) {
           pendingRequestIds.add(msg.id as string | number)
         }
-        child.stdin.write(JSON.stringify(msg) + '\n')
+        const payload = JSON.stringify(msg) + '\n'
+        const written = child.stdin.write(payload)
+        logger.info(`[debug] stdin.write() returned ${written}, payload length=${payload.length}`)
       }
 
       transport.onclose = () => {
