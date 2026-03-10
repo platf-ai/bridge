@@ -1,6 +1,6 @@
 {
   "name": "@platf/bridge",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Stdio-to-Streamable HTTP bridge for MCP servers — Platf AI Hub",
   "module": "src/index.ts",
   "main": "dist/index.js",
