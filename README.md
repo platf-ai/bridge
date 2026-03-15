@@ -74,4 +74,10 @@ docker run -p 8000:8000 platf-mcp-bridge \
 | `--authIssuer` | — | OAuth 2.0 issuer URL (enables auth) |
 | `--authClientId` | — | OAuth client ID (required if issuer set) |
 
+### Session Timeout Notes
+
+The `--sessionTimeout` option uses **access counting** — timeouts only fire when all active HTTP requests complete and no new requests arrive within the timeout period. Long-running tool calls are never interrupted.
+
+**Edge case**: If the client has a shorter timeout (e.g., 2 minutes) than the tool execution, the client aborts but the bridge session stays alive until the session timeout. The child process continues running and may complete work the client abandoned.
+
 This project was created using `bun init` in bun v1.3.7. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
