@@ -53,12 +53,6 @@ jobs:
           fi
           echo "Bump type: $(cat "$GITHUB_OUTPUT" | grep type | cut -d= -f2)"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
@@ -98,9 +92,9 @@ jobs:
           git push origin main --tags
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: bun publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   docker:
     needs: release

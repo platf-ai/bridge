@@ -9,10 +9,6 @@ RUN echo '#!/bin/sh\nexec bunx "$@"' > /usr/local/bin/npx && chmod +x /usr/local
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 
-# Copy source
-COPY src/ src/
-COPY tsconfig.json ./
-
 EXPOSE 8000
 
-ENTRYPOINT ["bun", "run", "src/index.ts"]
+ENTRYPOINT ["bunx", "@platf/bridge"]
