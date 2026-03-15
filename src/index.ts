@@ -77,6 +77,9 @@ const argv = await yargs(hideBin(process.argv))
 const logger = getLogger(argv.logLevel as LogLevel)
 const corsOrigin = parseCorsOrigin(argv.cors as (string | number)[] | undefined)
 const headers = parseHeaders(argv.header, logger)
+const version = process.env.PLATF_BRIDGE_VERSION || 'dev'
+
+logger.info(`platf-bridge v${version} starting...`)
 
 // Build auth config (only when --authIssuer is provided)
 let auth: AuthConfig | null = null
@@ -91,7 +94,6 @@ if (argv.authIssuer) {
   logger.info('  Auth: disabled')
 }
 
-logger.info('platf-bridge starting...')
 logger.info(`  Mode: ${argv.stateful ? 'stateful' : 'stateless'}`)
 
 if (argv.stateful) {

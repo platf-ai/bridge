@@ -131,6 +131,8 @@ jobs:
           tags: |
             ghcr.io/platf-ai/${{ matrix.image.name }}:${{ needs.release.outputs.version }}
             ghcr.io/platf-ai/${{ matrix.image.name }}:latest
+          build-args: |
+            VERSION=${{ needs.release.outputs.version }}
           provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
