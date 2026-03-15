@@ -64,7 +64,7 @@ const argv = await yargs(hideBin(process.argv))
   })
   .option('authIssuer', {
     type: 'string',
-    describe: 'OAuth issuer URL (e.g. https://auth.platf.ai). Enables auth when set.',
+    describe: 'OAuth issuer URL (e.g. https://app.platf.ai/oauth). Enables auth when set.',
   })
   .option('authClientId', {
     type: 'string',

@@ -29,7 +29,7 @@ bunx @platf/bridge --stdio "npx -y @modelcontextprotocol/server-everything" --po
 # With Authentication enabled
 bunx @platf/bridge \
   --stdio "npx -y @modelcontextprotocol/server-everything" \
-  --authIssuer https://auth.platf.ai \
+  --authIssuer https://app.platf.ai/oauth \
   --authClientId mcp-bridge-client
 
 # Using npx (Stateful with 10 min session timeout)
