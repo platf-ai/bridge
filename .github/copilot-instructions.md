@@ -47,6 +47,7 @@ When `--authIssuer` and `--authClientId` are provided:
 2. **Authorization Server Metadata** (RFC 8414): Proxied from issuer at `/.well-known/oauth-authorization-server`
 3. **Dynamic Client Registration** (RFC 7591): Proxied to issuer at `/oauth/register`
 4. **JWT Validation**: Bearer tokens validated against issuer's JWKS
+5. **Audience Validation** (RFC 9068): Validates `aud` claim matches bridge URL
 
 ### Owner Restriction Flow
 
@@ -57,6 +58,13 @@ Owner-based access control is enforced by **platf-auth** (not the bridge):
 3. VS Code dynamically registers new client via DCR with `resource` parameter
 4. platf-auth extracts `ownerId` from resource URL and enforces access restriction
 5. Non-owners receive `ACCESS_DENIED` error during OAuth callback
+
+### Audience Validation (RFC 9068)
+
+The bridge validates the `aud` (audience) claim:
+- If `aud` is a URL, it must match the bridge's resource URL (`https://{host}/mcp`)
+- If `aud` is a client ID (non-URL), it's accepted for backward compatibility
+- Mismatched audience → 401 Unauthorized
 
 ## Coding Conventions
 

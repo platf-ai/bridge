@@ -3,6 +3,7 @@
  *
  * - Fetches JWKS from `{issuer}/jwks` using jose's createRemoteJWKSet (auto-caches).
  * - Validates Bearer token: signature, `iss`, `exp`.
+ * - Validates `aud` claim per RFC 9068: must be resource URL or client ID.
  * - On failure returns 401 with RFC 9728–compliant `WWW-Authenticate` header
  *   pointing at the OAuth Protected Resource Metadata document.
  */
@@ -28,6 +29,32 @@ export function createAuthMiddleware(auth: AuthConfig, logger: Logger): RequestH
       const { payload } = await jwtVerify(token, JWKS, {
         issuer: auth.issuer,
       })
+
+      // ── RFC 9068 §2.2: Audience Validation ──
+      // If aud is a URL, it must match this resource server's URL.
+      // If aud is a client ID (non-URL), accept it for backward compatibility.
+      const aud = payload.aud
+      if (aud) {
+        const audValues = Array.isArray(aud) ? aud : [aud]
+        const scheme = req.get('x-forwarded-proto') || req.protocol
+        const host = req.get('host')
+        const resourceUrl = `${scheme}://${host}/mcp`
+
+        // Check if any audience value is valid
+        const isValidAudience = audValues.some(a => {
+          // If it looks like a URL, it must match our resource URL
+          if (typeof a === 'string' && (a.startsWith('http://') || a.startsWith('https://'))) {
+            return a === resourceUrl
+          }
+          // Non-URL audience (client ID) - accept for backward compat with user OAuth flow
+          return true
+        })
+
+        if (!isValidAudience) {
+          logger.error('[auth] Token audience mismatch:', { aud, expected: resourceUrl })
+          return unauthorized(req, res, auth, 'invalid_token: audience mismatch')
+        }
+      }
 
       // Attach token payload to request for downstream use
       ;(req as any).tokenPayload = payload

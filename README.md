@@ -15,6 +15,7 @@ Wraps any MCP server that speaks JSON-RPC over **stdio** and exposes it as a **S
 
 The bridge supports OAuth 2.0 JWT authentication via `--authIssuer` and `--authClientId`.
 - Validates **Bearer tokens** (signature + expiration checks against issuer's JWKS).
+- Validates **audience claim** (RFC 9068): URL audiences must match the bridge's resource URL.
 - Exposes standard discovery endpoints:
   - `/.well-known/oauth-protected-resource` (RFC 9728)
   - `/.well-known/oauth-authorization-server` (RFC 8414 proxy)
